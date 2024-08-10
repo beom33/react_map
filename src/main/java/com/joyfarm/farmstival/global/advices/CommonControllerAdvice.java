@@ -70,3 +70,6 @@ public class CommonControllerAdvice {
         return ResponseEntity.status(status).body(data);
     }
 }
+ // 다양한 예외 상황을 처리하고,
+// 각 상황에 맞는 메시지와 상태 코드를 포함한 응답을 클라이언트에게 반환하는 역할을 한다.
+// 이로 인해 사용자는 예외가 발생했을 때 그 이유를 명확히 알 수 있음
