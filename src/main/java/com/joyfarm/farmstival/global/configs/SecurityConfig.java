@@ -37,9 +37,10 @@ public class SecurityConfig {
                 // STATELESS가 되면 세션을 사용하지 않게 된다.
                 .exceptionHandling(h -> {
                     h.authenticationEntryPoint((req, res, e) -> res.sendError(HttpStatus.UNAUTHORIZED.value()));
-                    // 회원가입이랑 토큰 발급 말고는 모두 인증이 필요하게 만들 것이다.
+                    // 인증되지 않은 사용자가 보호된 리소스에 접근하려 할때 401 UNAUTHORIZED 상태 코드 반환
                     h.accessDeniedHandler((req, res, e) -> res.sendError(HttpStatus.UNAUTHORIZED.value()));
-                })
+                })  // 인증된 사용자가 권한이 없는 리소스에 접근하려 할때 401 UNAUTHORIZED 상태 코드 반환
+
                 .authorizeHttpRequests(c -> {
                     c.requestMatchers(
                                     "/account",
@@ -53,6 +54,15 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(); // PasswordEncoder 인터페이스를 구현하는 BCryptPasswordEncoder를 반환한다.
+        // BCryptPasswordEncoder는 패스워드를 안전하게 해시 처리하기 위해 사용된다.
     }
 }
+
+// 스프리링 시큐리티를 사용해 웹 애플리케이션 보안을 설정하는 내용을 담고있다.
+// CSRF 보호를 비활성화하고, JWT와 CORS 필터를 추가하며, 세션을 사용하지 않는 상태로 설정
+// 또한, 특정 경로는 인증 없이 접근할 수 있도록 허용하고, 나머지 경로는 인증이 필요하도록 설정
+// 마지막으로 패스워드 인코딩 방식으로 BCryptPasswordEncoder를 사용해 안전하게 패스워드를 처리할 수 있게 함
+
+//JWT 는 무엇인가? JSON Web Token의 약자로,
+// 웹 애플리케이션에서 사용자의 인증과 권한을 관리하기 위해 사용되는 토큰 기반의 인증 방식
