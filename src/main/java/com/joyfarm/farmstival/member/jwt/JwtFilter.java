@@ -16,13 +16,10 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
-// 스프링 시큐리티 내에서 사용하는 필터는 별도의 방식이 있다. 여기서 정의하고 추가하면 된다.
-// 스프링 시큐리티에서는 필터 전, 후 등 특정 시점에 추가할 수 있는 기능이 있다.
-// 그 점을 활용해서 토큰으로 로그인을 하고 로그인을 유지하는 방식을 기본 필터 전에 먼저 추가할 것이다.
 public class JwtFilter extends GenericFilterBean {
 
     private final TokenProvider provider;
-
+     // JWT 토큰을 생성하거나 검증하는 기능을 제공 
     /**
      * 요청 헤더 Authorization : Bearer JWT 토큰 값
      *
@@ -35,14 +32,15 @@ public class JwtFilter extends GenericFilterBean {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-
-        String token = getToken(request);
+      //  doFilter 메서드는 필터의 핵심 로직을 처리함. 클라이언트에서 요청이 들어올 때마다 이 메서드가 호출된다.
+        String token = getToken(request); //getToken 메서드를 사용해 HTTP 요청에서 JWT 토큰을 추출.
         if(StringUtils.hasText(token)) {
-            // 토큰을 가지고 회원 인증 객체를 추출한 다음 로그인 유지 처리를 한다.
+            //토큰이 존재하고 내용이 있다면, 그 토큰을 사용해 사용자를 인증한다.
             Authentication authentication = provider.getAuthentication(token);
+            //TokenProvider를 통해 토큰에서 인증 정보를 추출.
             SecurityContextHolder.getContext().setAuthentication(authentication); // -> 이것을 넣으면 로그인 유지가 된다.
         }
-        chain.doFilter(request, response);
+        chain.doFilter(request, response); //다음 필터로 요청을 전달하여 계속 처리될 수 있도록 한다.
     }
 
     /**
@@ -54,17 +52,18 @@ public class JwtFilter extends GenericFilterBean {
      * @return
      */
 
-    // 토큰을 추출할 수 있는 메서드 추가 (여기서 추출해서 헤더에 실어서 보낸다)
-    private String getToken(ServletRequest request) {
+    private String getToken(ServletRequest request)  {
+        //HTTP 요청 헤더에서 JWT 토큰을 추출하는 역할을 한다.
         HttpServletRequest req = (HttpServletRequest) request;
+        //ServletRequest를 HttpServletRequest로 변환. 이렇게 해야 HTTP 요청에 접근가능.
         String bearerToken = req.getHeader("Authorization");
+        //요청 헤더에서 Authorization 헤더 값을 가져온다. 이 헤더에는 JWT 토큰이 포함됨.
         if(StringUtils.hasText(bearerToken)
                 && bearerToken.toUpperCase().startsWith("BEARER ")) {
-            // bearer로 시작하는 토큰을 여기서 추출한다.
-            // 이것은 정해져 있는 방식이다.
-            // bearer 뒤부터 잘라서 추출한다.
+              //헤더 값이 존재하고, "Bearer "로 시작하는지 확인. "Bearer"는 토큰 인증 방식의 일종.
             return bearerToken.substring(7).trim();
+            //Bearer " 이후의 실제 토큰 값을 추출해 반환. 여기서 7은 "Bearer " 문자열의 길이
         }
-        return null;
+        return null; //만약 토큰이 없거나 올바르지 않으면 null을 반환.
     }
 }
